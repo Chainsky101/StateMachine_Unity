@@ -11,7 +11,7 @@ namespace DefaultNamespace
         public override void Enter()
         {
             base.Enter();
-            rigid.linearVelocity = new Vector2(rigid.linearVelocityX, player.jumpForce);
+            player.SetVelocity(rigid.linearVelocityX,player.jumpForce);
         }
 
         public override void Exit()
@@ -22,9 +22,14 @@ namespace DefaultNamespace
         public override void Update()
         {
             base.Update();
+            if(player.WallDetection())
+                stateMachine.Exchange(player._slide);
+            // player.anim.SetFloat("yVelocity",rigid.linearVelocityY);
+            // if(rigid.linearVelocityY < 0)
+            //     stateMachine.Exchange(player._air); -- optimized : decrease the state switch times
+            if(player.GroundDetection() && rigid.linearVelocityY < 0) 
+                stateMachine.Exchange(player._idle);
             
-            if(rigid.linearVelocityY < 0)
-                stateMachine.Exchange(player._air);
         }
     }
 }

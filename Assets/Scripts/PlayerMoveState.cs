@@ -21,7 +21,7 @@ public class PlayerMoveState : PlayerGroundState
     {
         base.Update();
 
-        if (xInput == 0)
+        if (xInput == 0 || player.WallDetection())
         {
             stateMachine.Exchange(player._idle);
         }

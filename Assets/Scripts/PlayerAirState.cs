@@ -21,7 +21,9 @@ namespace DefaultNamespace
         {
             base.Update();
             if(rigid.linearVelocityY == 0)
-                stateMachine.Exchange(player._idle);
+               stateMachine.Exchange(player._idle); 
+            if(player.WallDetection())
+                stateMachine.Exchange(player._slide);
         }
     }
 }
