@@ -11,6 +11,7 @@ public class PlayerIdleState : PlayerGroundState
     public override void Enter()
     {
         base.Enter();
+        player.ZeroVelocity();
     }
 
     public override void Exit()
@@ -23,7 +24,7 @@ public class PlayerIdleState : PlayerGroundState
         base.Update();
         
             
-        if (xInput != 0 && !player.WallDetection())
+        if (xInput != 0 && !player.isBusy && !player.WallDetection())
         {
             stateMachine.Exchange(player._move);
         }

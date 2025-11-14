@@ -20,7 +20,7 @@ namespace DefaultNamespace
         public override void Update()
         {
             base.Update();
-            if(rigid.linearVelocityY == 0)
+            if(player.GroundDetection())
                stateMachine.Exchange(player._idle); 
             if(player.WallDetection())
                 stateMachine.Exchange(player._slide);

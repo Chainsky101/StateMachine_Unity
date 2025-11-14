@@ -1,14 +1,20 @@
 using System;
+using System.Collections;
 using DefaultNamespace;
 using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    #region Attributes
+
+    [Header("Attack Movement")] public Vector2[] move;
+    
     [Header("Move Info")] public float moveSpeed;
     public float jumpForce;
     public float faceDir { get; private set; } = 1f;
     private bool faceRight = true;
-
+    public bool isBusy { get; private set; } = false;
+    
     [Header("Dash Info")]    
     public float dashSpeed;
     public float dashDuration;
@@ -22,7 +28,8 @@ public class Player : MonoBehaviour
     [SerializeField] private float wallDetectedDistance;
     [SerializeField] private Transform wall;
     [SerializeField] private LayerMask WhatIsGround;
-
+    #endregion
+    
     
     #region Components
     public Animator anim { get; private set; }
@@ -37,6 +44,8 @@ public class Player : MonoBehaviour
     public PlayerAirState _air;
     public PlayerDashState _dash;
     public PlayerSlideState _slide;
+    public PlayerWallJumpState _wallJump;
+    public PlayerPrimeAttackState _attack;
     #endregion
     
 
@@ -54,6 +63,8 @@ public class Player : MonoBehaviour
         _air = CreateState<PlayerAirState>("Jump");
         _dash = CreateState<PlayerDashState>("Dash");
         _slide = CreateState<PlayerSlideState>("Slide");
+        _wallJump = CreateState<PlayerWallJumpState>("Jump");
+        _attack = CreateState<PlayerPrimeAttackState>("Attack");
     }
 
     private void Start()
@@ -67,17 +78,23 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
+        
         _stateMachine.currentState.Update();
-
+        
         DashController();
-        Debug.Log("wall detection"+WallDetection());
     }
+
+    #region Collision
 
     public bool GroundDetection() => 
         Physics2D.Raycast(ground.position, Vector2.down, groundDetectedDistance,WhatIsGround);
     public bool WallDetection() =>
         Physics2D.Raycast(wall.position, Vector2.right * faceDir, wallDetectedDistance, WhatIsGround);
-    
+
+    #endregion
+
+    #region Flip
+
     private void Flip()
     {
         faceDir *= -1f;
@@ -92,16 +109,25 @@ public class Player : MonoBehaviour
         else if(xVelocity >0 && !faceRight)
             Flip();
     }
+
+    #endregion
+
+    #region Move
+
     public void SetVelocity(float xVelocity, float yVelocity=0)
     {
         rigid.linearVelocity = new Vector2(xVelocity, yVelocity);
         FaceController(xVelocity);
     }
+    public void ZeroVelocity() => rigid.linearVelocity = Vector2.zero;
 
     private void DashController()
     {
         dashTimer -= Time.deltaTime;
-
+        
+        if(_stateMachine.currentState == _slide)
+            return;
+        
         if (Input.GetKeyDown(KeyCode.LeftShift) && dashTimer < 0)
         {
             dashTimer = dashCoolDown;
@@ -111,6 +137,26 @@ public class Player : MonoBehaviour
                 dashDir = faceDir;
             _stateMachine.Exchange(_dash);
         }
+    }
+
+    #endregion
+
+    #region Utility
+
+    public void AnimationTrigger()
+    {
+        _stateMachine.currentState.AnimationTrigger();
+    }
+    public void StartBusy(float time)
+    {
+        StartCoroutine(SetBusy(time));
+    }
+
+    private IEnumerator SetBusy(float time)
+    {
+        isBusy = true;
+        yield return new WaitForSeconds(time);
+        isBusy = false;
     }
     
     
@@ -125,4 +171,6 @@ public class Player : MonoBehaviour
         Type obj = typeof(T);
         return Activator.CreateInstance(obj, new object[] { _stateMachine, this, stringBoolName }) as T;
     }
+
+    #endregion
 }

@@ -21,11 +21,17 @@ namespace DefaultNamespace
         public override void Update()
         {
             base.Update();
-            if(Input.GetKeyDown(KeyCode.Space) && player.GroundDetection())
-                stateMachine.Exchange(player._jump);
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                if(player.GroundDetection()) stateMachine.Exchange(player._jump);
+                else if(player.WallDetection()) stateMachine.Exchange(player._slide);
+            }
             // used in dash 
             if(!player.GroundDetection())
                 stateMachine.Exchange(player._air);
+            
+            if(Input.GetKey(KeyCode.Mouse0))
+                stateMachine.Exchange(player._attack);
             
             // //protected player from moving to wall
             // if (player.WallDetection())
